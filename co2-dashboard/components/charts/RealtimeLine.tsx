@@ -1,6 +1,6 @@
 "use client";
 import useSWR from "swr";
-import { getLatestCo2, subscribeCo2Changes, Co2Row } from "@/lib/co2";
+import { axiosFetcher } from "@/lib/api";
 
 export default function RealtimeCard({
   title, endpoint, unit
