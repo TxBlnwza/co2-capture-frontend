@@ -56,7 +56,7 @@ export default function TrendPanel() {
 
   useEffect(() => {
     const unsub = subscribeCo2Changes(() => mutate(key));
-    return () => unsub();
+    return () => { void unsub(); };
   }, [key]);
 
   const labels = data?.labels ?? [];

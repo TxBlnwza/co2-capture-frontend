@@ -46,7 +46,10 @@ export default function EfficiencyPanel({ className = "" }: { className?: string
   // Realtime → รีเฟรช
   useEffect(() => {
     const unsub = subscribeCo2Changes(() => mutate(key));
-    return () => unsub();
+    return () => {
+      // Cleanup must be synchronous; ignore the Promise returned by unsub()
+      void unsub();
+    };
   }, [key]);
 
   const wrapRef = useRef<HTMLDivElement>(null);

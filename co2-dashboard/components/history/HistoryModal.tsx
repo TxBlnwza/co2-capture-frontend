@@ -164,7 +164,7 @@ export default function HistoryModal({ open, onClose }: Props) {
 
       const avgRow =
         [p1, p2, p3].every((x) => typeof x === "number")
-          ? Math.round(((p1 as number + p2 as number + p3 as number) / 3) * 100) / 100
+          ? Math.round((((p1 as number) + (p2 as number) + (p3 as number)) / 3) * 100) / 100
           : "";
 
       return [
