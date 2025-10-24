@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "app/**/*.js": {
+      "maxDuration": 10
+    }
+  },
+  "regions": ["sin1"]
+}
