@@ -13,7 +13,9 @@ export default function UpdateAt() {
 
   useEffect(() => {
     const off = onLastUpdate(setIso);
-    return () => off();
+    return () => {
+      off(); // เรียกใช้แล้วไม่ return ค่า
+    };
   }, []);
 
   let text = "—";

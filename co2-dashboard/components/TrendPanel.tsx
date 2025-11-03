@@ -116,11 +116,15 @@ export default function TrendPanel() {
     return () => { void unsub(); };
   }, [swrKey]);
 
-  // Chart data
+  // Chart data - แก้บรรทัด 121-123
   const labels = data?.labels ?? [];
-  const rawSeries = mode === "day" ? data?.reducedSeries ?? [] : data?.series ?? [];
-  const series = rawSeries.map((v) => (v != null && v < 0 ? 0 : v)); // ตัดค่าติดลบ
-  const avgReducedOverall = mode === "day" ? data?.avgReducedOverall ?? 0 : null;
+  const rawSeries = mode === "day" 
+    ? ((data as any)?.reducedSeries ?? []) 
+    : ((data as any)?.series ?? []);
+  const series = rawSeries.map((v: any) => (v != null && v < 0 ? 0 : v)); // ตัดค่าติดลบ
+  const avgReducedOverall = mode === "day" 
+    ? ((data as any)?.avgReducedOverall ?? 0) 
+    : null;
   const yMax = yMaxNice(series);
 
   const chart = useMemo(
