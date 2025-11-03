@@ -1,3 +1,4 @@
+// app/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -5,7 +6,7 @@ import Co2Summary from "@/components/Co2Summary";
 import EfficiencyPanel from "@/components/EfficiencyPanel";
 import RealtimeCard from "@/components/cards/RealtimeCard";
 import TrendPanel from "@/components/TrendPanel";
-import Clock from "@/components/Clock";
+import UpdateAt from "@/components/UpdateAt";                // 👈 ใช้ตัวนี้ตามเดิม
 import HistoryModal from "@/components/history/HistoryModal";
 
 export default function CO2Page() {
@@ -16,7 +17,7 @@ export default function CO2Page() {
       {/* Top bar */}
       <div className="w-full md:w-4/5 mx-auto flex items-center justify-between">
         <div className="text-sm text-white/80">
-          <Clock />
+          <UpdateAt />{/* 👈 เวลาอัปเดตล่าสุด */}
         </div>
 
         <button
@@ -28,9 +29,18 @@ export default function CO2Page() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-2 gap-4">
-        <div className="lg:col-span-2"><Co2Summary /></div>
-        <div className="lg:col-start-3 lg:row-span-2 h-full [&>*]:h-full"><EfficiencyPanel /></div>
-        <div className="lg:col-span-2 lg:row-start-2">
+        {/* ซ้ายบน: CO₂ Reduced */}
+        <div className="lg:col-span-2">
+          <Co2Summary />
+        </div>
+
+        {/* ขวา: Average Efficiency (กึ่งกลางบนจอเล็ก, เต็มคอลัมน์บนจอใหญ่) */}
+        <div className="lg:col-start-3 lg:row-span-2 h-full flex lg:block justify-center [&>*]:h-full">
+          <EfficiencyPanel className="h-full" />
+        </div>
+
+        {/* ซ้ายล่าง: การ์ด 3 ใบ เลื่อนลงเล็กน้อยแบบ responsive */}
+        <div className="lg:col-span-2 lg:row-start-2 mt-6 md:mt-8 lg:mt-14">
           <div className="w-full md:w-4/5 mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
             <RealtimeCard title="Position 1" column="co2_position1_ppm" />
             <RealtimeCard title="Position 2" column="co2_position2_ppm" />
@@ -46,6 +56,8 @@ export default function CO2Page() {
     </section>
   );
 }
+
+
 
 
 

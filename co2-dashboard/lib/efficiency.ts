@@ -112,3 +112,46 @@ function fmtTH(d: Date) {
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   return `${dd}/${mm}`;
 }
+// ──────────────────────────────────────────────────────────────
+// RAW 10-minute window for "Time window" mode (<= 24 hours)
+// ──────────────────────────────────────────────────────────────
+
+export type ReducedRawPoint = { ts: string; v: number | null };
+
+/**
+ * ดึงค่าดิบ co2_reduced_ppm_interval ทุก 10 นาทีในช่วงเวลา (จำกัด <= 24 ชม.)
+ * คืน labels = HH:mm, series = ค่า ppm (อาจมี null ถ้าไม่มีข้อมูล)
+ */
+export async function fetchReducedRaw10mWindow(
+  from: Date,
+  to: Date
+): Promise<{ labels: string[]; series: (number | null)[] }> {
+  // กันพลาดช่วงเกิน 24 ชม.
+  const MAX_MS = 24 * 60 * 60 * 1000;
+  const end = new Date(Math.min(to.getTime(), from.getTime() + MAX_MS));
+
+  const { data, error } = await supabase
+    .from("co2_data")
+    .select("timestamp, co2_reduced_ppm_interval")
+    .gte("timestamp", from.toISOString())
+    .lte("timestamp", end.toISOString())
+    .order("timestamp", { ascending: true });
+
+  if (error) {
+    console.error("fetchReducedRaw10mWindow error", error);
+    return { labels: [], series: [] };
+  }
+
+  const labels: string[] = [];
+  const series: (number | null)[] = [];
+
+  (data ?? []).forEach((row: any) => {
+    const t = new Date(row.timestamp as string);
+    const hh = String(t.getHours()).padStart(2, "0");
+    const mm = String(t.getMinutes()).padStart(2, "0");
+    labels.push(`${hh}:${mm}`);
+    series.push(row.co2_reduced_ppm_interval ?? null);
+  });
+
+  return { labels, series };
+}

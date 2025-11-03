@@ -1,3 +1,4 @@
+// components/EfficiencyPanel.tsx
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -7,12 +8,6 @@ import "@/components/charts/ChartSetup";
 import { fetchEfficiencySeries } from "@/lib/efficiency";
 import { subscribeCo2Changes } from "@/lib/co2";
 
-function fmt(d: Date) {
-  const dd = String(d.getDate()).padStart(2, "0");
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const yy = String(d.getFullYear()).toString().slice(-2);
-  return `${dd}/${mm}/${yy}`;
-}
 function toInput(d: Date) {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -32,7 +27,6 @@ export default function EfficiencyPanel({ className = "" }: { className?: string
 
   const [from, setFrom] = useState<Date>(start);
   const [to, setTo] = useState<Date>(today);
-  const [openPicker, setOpenPicker] = useState<"from" | "to" | null>(null);
 
   const key = useMemo(() => `eff_series:${toInput(from)}:${toInput(to)}`, [from, to]);
 
@@ -43,35 +37,21 @@ export default function EfficiencyPanel({ className = "" }: { className?: string
     { revalidateOnFocus: false }
   );
 
-  // Realtime → รีเฟรช
+  // Realtime → รีเฟรชเมื่อ co2_data เปลี่ยน
   useEffect(() => {
     const unsub = subscribeCo2Changes(() => mutate(key));
-    return () => {
-      // Cleanup must be synchronous; ignore the Promise returned by unsub()
-      void unsub();
-    };
+    return () => { void unsub(); };
   }, [key]);
 
-  const wrapRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (!wrapRef.current) return;
-      if (!wrapRef.current.contains(e.target as Node)) setOpenPicker(null);
-    };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, []);
-
   const labels = data?.labels ?? [];
-  const series = data?.effSeries ?? [];                 // % series สำหรับกราฟ
-  const overall = data?.overallAvg ?? 0;                // Average Efficiency %
-  const avgReducedPPM = data?.avgReducedOverall ?? 0;   // Avg / Day (ppm)
+  const series = data?.effSeries ?? [];
+  const overall = data?.overallAvg ?? 0;
+  const avgReducedPPM = data?.avgReducedOverall ?? 0;
   const maxDay = data?.maxDay ?? "-";
   const max = data?.max ?? 0;
   const minDay = data?.minDay ?? "-";
   const min = data?.min ?? 0;
 
-  // Chart data
   const chart = useMemo(() => {
     return {
       labels,
@@ -94,69 +74,41 @@ export default function EfficiencyPanel({ className = "" }: { className?: string
 
   return (
     <div
-      ref={wrapRef}
       className={`
-        w-[75%] self-start
+        w-full mx-auto lg:mx-0
+        max-w-[420px] lg:max-w-[320px]
         rounded-[10px] border border-white/15
         bg-gradient-to-b from-[#2e61b0]/40 to-[#0b2a60]/40
         p-4 text-white shadow-md
         ${className}
       `}
     >
-      {/* Date pills + dropdown pickers */}
-      <div className="mb-3 flex items-center gap-2 relative">
-        <button
-          type="button"
-          onClick={() => setOpenPicker(openPicker === "from" ? null : "from")}
-          className="rounded-full bg-[#2b65c2] text-white/95 text-xs px-3 py-1 border border-white/20 shadow-sm"
-        >
-          {fmt(from)}
-        </button>
+      {/* ==== Date pickers (อินพุตจริง ไม่มีปุ่มแคปซูล) ==== */}
+      <div className="mb-3 flex items-center gap-2">
+        <input
+          type="date"
+          aria-label="From date"
+          value={toInput(from)}
+          max={toInput(to)}
+          onChange={(e) => {
+            const d = fromInput(e.target.value);
+            if (d > to) setTo(d);
+            setFrom(d);
+          }}
+          className="date-input text-xs"
+        />
         <span className="text-xs opacity-80">-</span>
-        <button
-          type="button"
-          onClick={() => setOpenPicker(openPicker === "to" ? null : "to")}
-          className="rounded-full bg-[#2b65c2] text-white/95 text-xs px-3 py-1 border border-white/20 shadow-sm"
-        >
-          {fmt(to)}
-        </button>
-
-        {/* Picker FROM */}
-        {openPicker === "from" && (
-          <div className="absolute left-0 top-full mt-2 rounded-xl bg-[#123165] border border-white/20 p-2 shadow-lg">
-            <input
-              type="date"
-              value={toInput(from)}
-              max={toInput(to)}
-              onChange={(e) => {
-                const d = fromInput(e.target.value);
-                if (d > to) setTo(d);
-                setFrom(d);
-                setOpenPicker(null);
-              }}
-              className="bg-transparent text-white text-sm border border-white/20 rounded-md px-2 py-1"
-            />
-          </div>
-        )}
-
-        {/* Picker TO */}
-        {openPicker === "to" && (
-          <div className="absolute left-[calc(0.5rem+84px)] top-full mt-2 rounded-xl bg-[#123165] border border-white/20 p-2 shadow-lg">
-            <input
-              type="date"
-              value={toInput(to)}
-              min={toInput(from)}
-              onChange={(e) => {
-                setTo(fromInput(e.target.value));
-                setOpenPicker(null);
-              }}
-              className="bg-transparent text-white text-sm border border-white/20 rounded-md px-2 py-1"
-            />
-          </div>
-        )}
+        <input
+          type="date"
+          aria-label="To date"
+          value={toInput(to)}
+          min={toInput(from)}
+          onChange={(e) => setTo(fromInput(e.target.value))}
+          className="date-input text-xs"
+        />
       </div>
 
-      {/* Chart (สูงขึ้น + tooltip popup เมื่อคลิก) */}
+      {/* Chart */}
       <div className="h-48 rounded-xl bg-white/10 p-2">
         <Line
           ref={chartRef}
@@ -175,14 +127,11 @@ export default function EfficiencyPanel({ className = "" }: { className?: string
                 titleFont: { weight: "bold" as const },
                 padding: 10,
                 callbacks: {
-                  title: (items) => {
-                    const i = items[0]?.dataIndex ?? 0;
-                    return labels[i] ?? "";
-                  },
-                  label: (ctx) => {
-                    const y = ctx.parsed?.y;
-                    return `Avg. Efficiency: ${y == null ? "N/A" : y.toFixed(2) + " %"}`;
-                  },
+                  title: (items) => labels[items[0]?.dataIndex ?? 0] ?? "",
+                  label: (ctx) =>
+                    `Avg. Efficiency: ${
+                      ctx.parsed?.y == null ? "N/A" : ctx.parsed.y.toFixed(2) + " %"
+                    }`,
                 },
               },
             },
@@ -197,7 +146,6 @@ export default function EfficiencyPanel({ className = "" }: { className?: string
               },
             },
             maintainAspectRatio: false,
-            // แสดง tooltip เมื่อคลิก
             onClick: (evt) => {
               const chart = chartRef.current;
               if (!chart) return;
@@ -249,9 +197,31 @@ export default function EfficiencyPanel({ className = "" }: { className?: string
           <span className="font-medium">{minDay} - {min}%</span>
         </div>
       </div>
+
+      {/* สไตล์อินพุต date ให้มองเห็นชัด (พื้นน้ำเงินเข้ม, ขาว, ไอคอนขาว) */}
+      <style jsx>{`
+        .date-input {
+          background: #123165;
+          color: #ffffff;
+          border: 1px solid rgba(255,255,255,0.2);
+          border-radius: 10px;
+          padding: 6px 10px;
+          outline: none;
+        }
+        .date-input::-webkit-calendar-picker-indicator {
+          filter: invert(1);
+          opacity: 0.9;
+          cursor: pointer;
+        }
+        .date-input:focus {
+          border-color: rgba(255,255,255,0.35);
+          box-shadow: 0 0 0 2px rgba(255,255,255,0.12);
+        }
+      `}</style>
     </div>
   );
 }
+
 
 
 

@@ -1,7 +1,7 @@
 // lib/co2.ts
 import { supabase } from "@/lib/supabaseClient";
+import { setLastUpdate } from "@/lib/updateBus";   // 👈 เพิ่มบรรทัดนี้
 export const subscribeCo2Latest = subscribeCo2Changes;
-
 
 export type Co2Row = {
   id: number;
@@ -28,6 +28,10 @@ export async function getLatestCo2(): Promise<Co2Row | null> {
     console.error("getLatestCo2 error", error);
     return null;
   }
+
+  // 👇 แจ้งเวลาอัปเดตล่าสุดเข้าบัส (ให้หน้า UI ไปแสดง)
+  setLastUpdate(data?.timestamp ?? null);
+
   return data;
 }
 
@@ -37,8 +41,12 @@ export function subscribeCo2Changes(onChange: (row: Co2Row) => void) {
     .channel("co2_changes")
     .on(
       "postgres_changes",
-      { event: "*", schema: "public", table: "co2_data" }, // *, หรือจะระบุ INSERT|UPDATE ก็ได้
-      (payload) => onChange(payload.new as Co2Row)
+      { event: "*", schema: "public", table: "co2_data" },
+      (payload) => {
+        const row = payload.new as Co2Row;
+        setLastUpdate(row?.timestamp ?? null); // 👈 อัปเดตเวลาเมื่อมีข้อมูลใหม่
+        onChange(row);
+      }
     )
     .subscribe();
 
@@ -63,5 +71,6 @@ export async function getTodaySummary(): Promise<TodaySummary> {
     avg_efficiency: row?.avg_efficiency ?? null,
   };
 }
+
 
 

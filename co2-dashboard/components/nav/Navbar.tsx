@@ -3,7 +3,8 @@
 export default function Navbar({ onMenu }: { onMenu: () => void }) {
   return (
     <header className="sticky top-0 z-40 bg-white text-black shadow-md">
-      <div className="max-w-7xl mx-auto h-[74px] px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      {/* เอา max-w-7xl mx-auto ออก และใช้ w-full px-0 เพื่อให้ชิดขอบ */}
+      <div className="w-full h-[74px] px-8 flex items-center justify-between">
         {/* Left: Hamburger (ใหญ่ขึ้น 15%) */}
         <button
           aria-label="Open menu"
