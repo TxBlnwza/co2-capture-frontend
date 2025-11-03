@@ -24,3 +24,14 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+html.gradient-bg,
+body {
+  height: 100%;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #4D78A1 0%, #10245F 100%) !important;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
+  color: white;
+}
+

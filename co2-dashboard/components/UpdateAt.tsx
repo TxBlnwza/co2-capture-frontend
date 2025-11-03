@@ -9,12 +9,18 @@ function pad(n: number) {
 }
 
 export default function UpdateAt() {
-  const [iso, setIso] = useState<string | null>(getLastUpdate());
+  const [iso, setIso] = useState<string | null>(null);
 
   useEffect(() => {
-    const off = onLastUpdate(setIso);
+    // เซ็ตค่าเริ่มต้นจากบัสทันทีตอน mount
+    setIso(getLastUpdate());
+
+    // สมัครฟังการอัปเดตเวลา
+    const off = onLastUpdate((v) => setIso(v));
+
+    // cleanup อย่างปลอดภัย เผื่อ onLastUpdate ไม่ได้คืนฟังก์ชัน
     return () => {
-      off(); // เรียกใช้แล้วไม่ return ค่า
+      if (typeof off === "function") off();
     };
   }, []);
 
