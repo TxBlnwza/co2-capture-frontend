@@ -9,16 +9,13 @@ function pad(n: number) {
 }
 
 export default function UpdateAt() {
-  const [iso, setIso] = useState<string | null>(null);
+  // ใช้ function initializer แทน setState ใน useEffect
+  const [iso, setIso] = useState<string | null>(() => getLastUpdate());
 
   useEffect(() => {
-    // เซ็ตค่าเริ่มต้นจากบัสทันทีตอน mount
-    setIso(getLastUpdate());
-
-    // สมัครฟังการอัปเดตเวลา
+    // เอา setIso(getLastUpdate()) ออก - ใช้แค่ subscription
     const off = onLastUpdate((v) => setIso(v));
 
-    // cleanup อย่างปลอดภัย เผื่อ onLastUpdate ไม่ได้คืนฟังก์ชัน
     return () => {
       if (typeof off === "function") off();
     };
