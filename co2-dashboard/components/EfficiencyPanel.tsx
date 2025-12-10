@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import useSWR, { mutate } from "swr";
 import { Line } from "react-chartjs-2";
 import "@/components/charts/ChartSetup";
-import { fetchEfficiencySeries } from "@/lib/efficiency";
+import { fetchEfficiencySeries, fetchTotalKgRange } from "@/lib/efficiency";
 import { subscribeCo2Changes } from "@/lib/co2";
 
 function toInput(d: Date) {
@@ -37,10 +37,19 @@ export default function EfficiencyPanel({ className = "" }: { className?: string
     { revalidateOnFocus: false }
   );
 
-  // Realtime → รีเฟรชเมื่อ co2_data เปลี่ยน
+  // โหลด total kg ของช่วงวันที่เลือก (ใช้ฟังก์ชัน get_daily_co2_kg_range)
+  const { data: totalKgRange } = useSWR(
+    `eff_total_kg:${toInput(from)}:${toInput(to)}`,
+    () => fetchTotalKgRange(from, to, "Asia/Bangkok"),
+    { revalidateOnFocus: false }
+  );
+
+  // Realtime → รีเฟรชเมื่อ co2_data เปลี่ยน (เฉพาะซีรีส์ efficiency)
   useEffect(() => {
     const unsub = subscribeCo2Changes(() => mutate(key));
-    return () => { void unsub(); };
+    return () => {
+      void unsub();
+    };
   }, [key]);
 
   const labels = data?.labels ?? [];
@@ -182,6 +191,17 @@ export default function EfficiencyPanel({ className = "" }: { className?: string
 
       {/* Stats */}
       <div className="mt-3 text-xs">
+        {/* ✅ Total ของช่วงวันที่เลือก (kg) อยู่ด้านบน Avg / Day */}
+        <div className="flex items-center justify-between py-1">
+          <span className="opacity-85">Total :</span>
+          <span className="font-medium">
+            {Number(totalKgRange ?? 0).toLocaleString(undefined, {
+              maximumFractionDigits: 6,
+            })}{" "}
+            kg
+          </span>
+        </div>
+
         <div className="flex items-center justify-between py-1">
           <span className="opacity-85">Avg / Day :</span>
           <span className="font-medium">
@@ -190,11 +210,15 @@ export default function EfficiencyPanel({ className = "" }: { className?: string
         </div>
         <div className="flex items-center justify-between py-1">
           <span className="opacity-85">Max day :</span>
-          <span className="font-medium">{maxDay} - {max}%</span>
+          <span className="font-medium">
+            {maxDay} - {max}%
+          </span>
         </div>
         <div className="flex items-center justify-between py-1">
           <span className="opacity-85">Min day :</span>
-          <span className="font-medium">{minDay} - {min}%</span>
+          <span className="font-medium">
+            {minDay} - {min}%
+          </span>
         </div>
       </div>
 
@@ -203,7 +227,7 @@ export default function EfficiencyPanel({ className = "" }: { className?: string
         .date-input {
           background: #123165;
           color: #ffffff;
-          border: 1px solid rgba(255,255,255,0.2);
+          border: 1px solid rgba(255, 255, 255, 0.2);
           border-radius: 10px;
           padding: 6px 10px;
           outline: none;
@@ -214,13 +238,14 @@ export default function EfficiencyPanel({ className = "" }: { className?: string
           cursor: pointer;
         }
         .date-input:focus {
-          border-color: rgba(255,255,255,0.35);
-          box-shadow: 0 0 0 2px rgba(255,255,255,0.12);
+          border-color: rgba(255, 255, 255, 0.35);
+          box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12);
         }
       `}</style>
     </div>
   );
 }
+
 
 
 

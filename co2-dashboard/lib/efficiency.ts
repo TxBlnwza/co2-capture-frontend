@@ -155,3 +155,24 @@ export async function fetchReducedRaw10mWindow(
 
   return { labels, series };
 }
+
+export async function fetchTotalKgRange(from: Date, to: Date, tz = "Asia/Bangkok") {
+  const { data, error } = await supabase.rpc("get_daily_co2_kg_range", {
+    p_from: toISODate(from),
+    p_to: toISODate(to),
+    p_tz: tz,
+  });
+
+  if (error) {
+    console.error("get_daily_co2_kg_range error", error);
+    return 0;
+  }
+
+  // รวมทั้งหมดในช่วง
+  const totalKg = (data ?? []).reduce((sum: number, row: any) => {
+    return sum + Number(row.total_kg ?? 0);
+  }, 0);
+
+  return totalKg;
+}
+
