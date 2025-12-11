@@ -176,7 +176,7 @@ export default function HistoryModal({ open, onClose }: Props) {
       "CO2 Reduced (ppm)",
       "CO2 Reduced (kg)",             // ✅ new column
       "Efficiency (%)",
-      "Avg CO2 Reduced (ppm) [row]",
+      "Avg CO2 Reduced (ppm) ",
     ];
 
     const lines = rows.map((r) => {
@@ -194,7 +194,7 @@ export default function HistoryModal({ open, onClose }: Props) {
 
       const effRaw = r.efficiency_percentage ?? null;
       const eff =
-        effRaw != null ? (effRaw * 100).toFixed(2) + "%" : "";
+        effRaw != null ? (effRaw ).toFixed(2) + "%" : "";
 
       // ใช้ number ล้วน ๆ สำหรับคำนวณ avgRow เพื่อเลี่ยง union type
       const p1n = r.co2_position1_ppm;
