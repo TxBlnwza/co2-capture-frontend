@@ -46,7 +46,7 @@ function formatDateEN(dateStr: string) {
   return `${dd}/${mm}/${yyyy}`;
 }
 
-// legend แบบเดียวกับของ CO2 (overlay มุมขวาบน) :contentReference[oaicite:3]{index=3}
+// legend แบบเดียวกับของ CO2 (overlay มุมขวาบน)
 function DashLegendPh() {
   return (
     <div className="flex flex-col gap-1.5">
@@ -54,13 +54,13 @@ function DashLegendPh() {
         <span aria-hidden className="text-base leading-none select-none" style={{ color: "#60A5FA" }}>
           -
         </span>
-        <span className="text-xs text-black">Wolffia (ไข่ผำ)</span>
+        <span className="text-xs text-black">Wolffia </span>
       </div>
       <div className="flex items-center gap-2">
         <span aria-hidden className="text-base leading-none select-none" style={{ color: "#F472B6" }}>
           -
         </span>
-        <span className="text-xs text-black">Shells (เปลือกหอย)</span>
+        <span className="text-xs text-black">Shells </span>
       </div>
     </div>
   );
@@ -77,7 +77,7 @@ export default function HourlyPhChart() {
     endDate: toDateInputValue(new Date()),
   });
 
-  // 1) default: หา min/max timestamp เพื่อโชว์ “ทั้งหมด” เหมือน CO2 :contentReference[oaicite:4]{index=4}
+  // 1) default: หา min/max timestamp เพื่อโชว์ “ทั้งหมด” เหมือน CO2
   useEffect(() => {
     const init = async () => {
       setLoading(true);
@@ -121,7 +121,7 @@ export default function HourlyPhChart() {
     init();
   }, []);
 
-  // 2) เรียก RPC ตามช่วงวันที่ (เหมือน CO2) :contentReference[oaicite:5]{index=5}
+  // 2) เรียก RPC ตามช่วงวันที่ (เหมือน CO2)
   useEffect(() => {
     const run = async () => {
       if (!rangeISO) return;
@@ -152,7 +152,7 @@ export default function HourlyPhChart() {
     run();
   }, [rangeISO]);
 
-  // X = hourIndex 1..N เหมือน CO2 :contentReference[oaicite:6]{index=6}
+  // X = hourIndex 1..N เหมือน CO2
   const chartData = useMemo(() => {
     const sorted = [...rows].sort(
       (a, b) => new Date(a.log_time).getTime() - new Date(b.log_time).getTime()
@@ -160,7 +160,7 @@ export default function HourlyPhChart() {
     return sorted.map((r, idx) => ({ ...r, hourIndex: idx + 1 }));
   }, [rows]);
 
-  // ticks แบบเดียวกับ CO2 (ละเอียด + กันค่าขวาสุดหาย) :contentReference[oaicite:7]{index=7}
+  // ticks แบบเดียวกับ CO2 (ละเอียด + กันค่าขวาสุดหาย)
   const xTicks = useMemo(() => {
     const max = chartData.length;
     if (max <= 1) return max === 1 ? [1] : [];
@@ -204,7 +204,21 @@ export default function HourlyPhChart() {
             <input
               type="date"
               value={uiRange.startDate}
-              onChange={(e) => setUiRange((p) => ({ ...p, startDate: e.target.value }))}
+              onChange={(e) => {
+                // ✅ ทำให้เหมือนไฟล์ที่ 2
+                const newStart = e.target.value;
+                const currentEnd = uiRange.endDate;
+
+                setUiRange((p) => ({ ...p, startDate: newStart }));
+
+                const start = startOfDayLocal(newStart);
+                const end = endOfDayLocal(currentEnd);
+
+                const startISO = (start <= end ? start : end).toISOString();
+                const endISO = (start <= end ? end : start).toISOString();
+
+                setRangeISO({ startISO, endISO });
+              }}
               className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm text-slate-900"
             />
           </div>
@@ -214,17 +228,24 @@ export default function HourlyPhChart() {
             <input
               type="date"
               value={uiRange.endDate}
-              onChange={(e) => setUiRange((p) => ({ ...p, endDate: e.target.value }))}
+              onChange={(e) => {
+                // ✅ ทำให้เหมือนไฟล์ที่ 2
+                const newEnd = e.target.value;
+                const currentStart = uiRange.startDate;
+
+                setUiRange((p) => ({ ...p, endDate: newEnd }));
+
+                const start = startOfDayLocal(currentStart);
+                const end = endOfDayLocal(newEnd);
+
+                const startISO = (start <= end ? start : end).toISOString();
+                const endISO = (start <= end ? end : start).toISOString();
+
+                setRangeISO({ startISO, endISO });
+              }}
               className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm text-slate-900"
             />
           </div>
-
-          <button
-            onClick={applyDateRange}
-            className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800"
-          >
-            Apply
-          </button>
 
           <button
             onClick={quickLast24h}

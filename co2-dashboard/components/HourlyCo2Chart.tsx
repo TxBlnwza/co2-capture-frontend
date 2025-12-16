@@ -69,19 +69,19 @@ function DashLegend() {
         <span aria-hidden className="text-base leading-none select-none" style={{ color: "#60A5FA" }}>
           -
         </span>
-        <span className="text-xs text-black">Sensor 1</span>
+        <span className="text-xs text-black">CO₂ Sensor 1</span>
       </div>
       <div className="flex items-center gap-2">
         <span aria-hidden className="text-base leading-none select-none" style={{ color: "#34D399" }}>
           -
         </span>
-        <span className="text-xs text-black">Sensor 2</span>
+        <span className="text-xs text-black">CO₂ Sensor 2</span>
       </div>
       <div className="flex items-center gap-2">
         <span aria-hidden className="text-base leading-none select-none" style={{ color: "#F472B6" }}>
           -
         </span>
-        <span className="text-xs text-black">Sensor 3</span>
+        <span className="text-xs text-black">CO₂ Sensor 3</span>
       </div>
     </div>
   );
@@ -268,7 +268,20 @@ export default function HourlyCo2Chart() {
             <input
               type="date"
               value={uiRange.startDate}
-              onChange={(e) => setUiRange((p) => ({ ...p, startDate: e.target.value }))}
+              onChange={(e) => {
+                const newStart = e.target.value;
+                const currentEnd = uiRange.endDate;
+
+                setUiRange((p) => ({ ...p, startDate: newStart }));
+
+                const start = startOfDayLocal(newStart);
+                const end = endOfDayLocal(currentEnd);
+
+                const startISO = (start <= end ? start : end).toISOString();
+                const endISO = (start <= end ? end : start).toISOString();
+
+                setRangeISO({ startISO, endISO });
+              }}
               className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm text-slate-900"
             />
           </div>
@@ -278,17 +291,23 @@ export default function HourlyCo2Chart() {
             <input
               type="date"
               value={uiRange.endDate}
-              onChange={(e) => setUiRange((p) => ({ ...p, endDate: e.target.value }))}
+              onChange={(e) => {
+                const newEnd = e.target.value;
+                const currentStart = uiRange.startDate;
+
+                setUiRange((p) => ({ ...p, endDate: newEnd }));
+
+                const start = startOfDayLocal(currentStart);
+                const end = endOfDayLocal(newEnd);
+
+                const startISO = (start <= end ? start : end).toISOString();
+                const endISO = (start <= end ? end : start).toISOString();
+
+                setRangeISO({ startISO, endISO });
+              }}
               className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm text-slate-900"
             />
           </div>
-
-          <button
-            onClick={applyDateRange}
-            className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800"
-          >
-            Apply
-          </button>
 
           <button
             onClick={quickLast24h}
@@ -341,7 +360,6 @@ export default function HourlyCo2Chart() {
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 12, right: 22, left: 18, bottom: 36 }}>
               <CartesianGrid horizontal={false} vertical={false} />
-
 
               <XAxis
                 dataKey="hourIndex"
