@@ -9,15 +9,12 @@ function pad(n: number) {
 }
 
 export default function UpdateAt() {
-  // ใช้ function initializer แทน setState ใน useEffect
-  const [iso, setIso] = useState<string | null>(() => getLastUpdate());
+  const [iso, setIso] = useState<string | null>(getLastUpdate());
 
   useEffect(() => {
-    // เอา setIso(getLastUpdate()) ออก - ใช้แค่ subscription
-    const off = onLastUpdate((v) => setIso(v));
-
+    const off = onLastUpdate(setIso);
     return () => {
-      if (typeof off === "function") off();
+      off(); // เรียกใช้แล้วไม่ return ค่า
     };
   }, []);
 

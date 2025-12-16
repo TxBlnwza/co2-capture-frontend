@@ -5,6 +5,8 @@ import { useState } from "react";
 import Co2Summary from "@/components/Co2Summary";
 import EfficiencyPanel from "@/components/EfficiencyPanel";
 import RealtimeCard from "@/components/cards/RealtimeCard";
+import HourlyCo2Chart from "@/components/HourlyCo2Chart";
+import HourlyPhChart from "@/components/HourlyPhChart";
 import TrendPanel from "@/components/TrendPanel";
 import UpdateAt from "@/components/UpdateAt";                // 👈 ใช้ตัวนี้ตามเดิม
 import HistoryModal from "@/components/history/HistoryModal";
@@ -42,13 +44,15 @@ export default function CO2Page() {
         {/* ซ้ายล่าง: การ์ด 3 ใบ เลื่อนลงเล็กน้อยแบบ responsive */}
         <div className="lg:col-span-2 lg:row-start-2 mt-6 md:mt-8 lg:mt-14">
           <div className="w-full md:w-4/5 mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
-            <RealtimeCard title="Position 1" column="co2_position1_ppm" />
-            <RealtimeCard title="Position 2" column="co2_position2_ppm" />
-            <RealtimeCard title="Position 3" column="co2_position3_ppm" />
+            <RealtimeCard title="Sensor 1" column="co2_position1_ppm" />
+            <RealtimeCard title="Sensor 2" column="co2_position2_ppm" />
+            <RealtimeCard title="Sensor 3" column="co2_position3_ppm" />
           </div>
         </div>
       </div>
 
+      <HourlyCo2Chart />
+      <HourlyPhChart />
       <TrendPanel />
 
       {/* Popup */}

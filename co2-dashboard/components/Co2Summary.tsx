@@ -67,19 +67,19 @@ export default function Co2Summary() {
   const bars = useMemo(
     () => [
       {
-        label: "Position 1",
+        label: "Sensor 1",
         val: avgP1,
         w: Math.min(100, (avgP1 / MAX_BAR_PPM) * 100),
         color: "#5CE1E6",
       },
       {
-        label: "Position 2",
+        label: "Sensor 2",
         val: avgP2,
         w: Math.min(100, (avgP2 / MAX_BAR_PPM) * 100),
         color: "#C77DFF",
       },
       {
-        label: "Position 3",
+        label: "Sensor 3",
         val: avgP3,
         w: Math.min(100, (avgP3 / MAX_BAR_PPM) * 100),
         color: "#edf4b0ff",

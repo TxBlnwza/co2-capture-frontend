@@ -392,13 +392,13 @@ export default function HistoryModal({ open, onClose }: Props) {
                 </th>
                 <th className="p-2 bg-white border-b text-left">Time</th>
                 <th className="p-2 bg-white border-b text-right">
-                  Position 1 CO₂ (ppm)
+                  Sensor 1 CO₂ (ppm)
                 </th>
                 <th className="p-2 bg-white border-b text-right">
-                  Position 2 CO₂ (ppm)
+                  Sensor 2 CO₂ (ppm)
                 </th>
                 <th className="p-2 bg-white border-b text-right">
-                  Position 3 CO₂ (ppm)
+                  Sensor 3 CO₂ (ppm)
                 </th>
                 <th className="p-2 bg-white border-b text-right">
                   CO₂ Reduced (ppm)
