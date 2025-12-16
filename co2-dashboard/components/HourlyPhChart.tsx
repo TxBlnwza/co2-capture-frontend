@@ -165,11 +165,14 @@ export default function HourlyPhChart() {
     const max = chartData.length;
     if (max <= 1) return max === 1 ? [1] : [];
 
-    const targetTicks = 24;
+    const targetTicks = 24; // ✅ ละเอียดขึ้น
     const step = Math.max(1, Math.ceil((max - 1) / targetTicks));
+
     const ticks: number[] = [];
     for (let v = 1; v <= max; v += step) ticks.push(v);
-    if (ticks[ticks.length - 1] !== max) ticks.push(max);
+
+    if (ticks[ticks.length - 1] !== max) ticks.push(max); // ✅ บังคับให้มีค่าตัวสุดท้าย
+
     return ticks;
   }, [chartData]);
 
@@ -229,7 +232,6 @@ export default function HourlyPhChart() {
               type="date"
               value={uiRange.endDate}
               onChange={(e) => {
-                // ✅ ทำให้เหมือนไฟล์ที่ 2
                 const newEnd = e.target.value;
                 const currentStart = uiRange.startDate;
 
@@ -249,7 +251,7 @@ export default function HourlyPhChart() {
 
           <button
             onClick={quickLast24h}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 hover:bg-slate-50"
+            className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm text-slate-800 hover:bg-slate-50"
           >
             Last 24 hr
           </button>
@@ -301,7 +303,7 @@ export default function HourlyPhChart() {
                 tick={{ fill: "rgba(15,23,42,0.85)", fontSize: 12 }}
                 stroke="rgba(15,23,42,0.35)"
                 allowDecimals={false}
-                interval="preserveStartEnd"
+                interval={0} 
                 minTickGap={10}
               >
                 <Label value="Hour (hr)" position="insideBottom" offset={-18} fill="#000" style={{ fontSize: 12 }} />
@@ -336,13 +338,13 @@ export default function HourlyPhChart() {
                 }}
                 labelStyle={{ color: "#0f172a" }}
                 formatter={(value, name) => [value, name]}
-                labelFormatter={(label) => `Hour ${label}`}
+                labelFormatter={(label) => `Hour : ${label}`}
               />
 
               <Line
                 type="monotone"
                 dataKey="ph_wolffia"
-                name="Wolffia (ไข่ผำ)"
+                name="Wolffia "
                 stroke="#60A5FA"
                 strokeWidth={2}
                 dot={false}
@@ -352,7 +354,7 @@ export default function HourlyPhChart() {
               <Line
                 type="monotone"
                 dataKey="ph_shells"
-                name="Shells (เปลือกหอย)"
+                name="Shells "
                 stroke="#F472B6"
                 strokeWidth={2}
                 dot={false}

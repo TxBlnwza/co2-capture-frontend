@@ -93,7 +93,7 @@ export default function Co2Summary() {
     if (!yesterdayKg || yesterdayKg <= 0) {
       return {
         trendColor: "#D1D5DB",
-        trendLabel: "0.00% vs yesterday",
+        trendLabel: "0.00% from yesterday",
       };
     }
 

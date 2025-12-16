@@ -1,5 +1,6 @@
 import RealtimeCard from "@/components/cards/RealtimeCard";
 import RealtimeLine from "@/components/charts/RealtimeLine";
+import HourlyPhChart from "@/components/HourlyPhChart";
 
 export default function EnergyPage() {
   return (
@@ -11,6 +12,7 @@ export default function EnergyPage() {
         <RealtimeCard title="Current (I)" column="co2_position3_ppm" unit="A" />
       </div>
       <RealtimeLine title="Energy Used (Realtime)" endpoint="energy_used" />
+      <HourlyPhChart />
     </section>
   );
 }

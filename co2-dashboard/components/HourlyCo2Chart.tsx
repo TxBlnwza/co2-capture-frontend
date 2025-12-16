@@ -311,7 +311,7 @@ export default function HourlyCo2Chart() {
 
           <button
             onClick={quickLast24h}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 hover:bg-slate-50"
+            className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm text-slate-800 hover:bg-slate-50"
           >
             Last 24 hr
           </button>
@@ -406,13 +406,13 @@ export default function HourlyCo2Chart() {
                 }}
                 labelStyle={{ color: "#0f172a" }}
                 formatter={(value, name) => [value, name]}
-                labelFormatter={(label) => `Hour ${label}`}
+                labelFormatter={(label) => `Hour : ${label}`}
               />
 
               <Line
                 type="monotone"
                 dataKey="pos1"
-                name="Sensor 1"
+                name="CO₂ Sensor 1"
                 stroke="#60A5FA"
                 strokeWidth={2}
                 dot={false}
@@ -422,7 +422,7 @@ export default function HourlyCo2Chart() {
               <Line
                 type="monotone"
                 dataKey="pos2"
-                name="Sensor 2"
+                name="CO₂ Sensor 2"
                 stroke="#34D399"
                 strokeWidth={2}
                 dot={false}
@@ -432,7 +432,7 @@ export default function HourlyCo2Chart() {
               <Line
                 type="monotone"
                 dataKey="pos3"
-                name="Sensor 3"
+                name="CO₂ Sensor 3"
                 stroke="#F472B6"
                 strokeWidth={2}
                 dot={false}
