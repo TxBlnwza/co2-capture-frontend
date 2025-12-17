@@ -303,7 +303,7 @@ export default function HourlyPhChart() {
                 tick={{ fill: "rgba(15,23,42,0.85)", fontSize: 12 }}
                 stroke="rgba(15,23,42,0.35)"
                 allowDecimals={false}
-                interval={0} 
+                interval="preserveStartEnd"
                 minTickGap={10}
               >
                 <Label value="Hour (hr)" position="insideBottom" offset={-18} fill="#000" style={{ fontSize: 12 }} />
