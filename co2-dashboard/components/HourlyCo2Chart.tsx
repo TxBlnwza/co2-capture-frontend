@@ -406,7 +406,13 @@ export default function HourlyCo2Chart() {
                 }}
                 labelStyle={{ color: "#0f172a" }}
                 formatter={(value, name) => [value, name]}
-                labelFormatter={(label) => `Hour : ${label}`}
+                labelFormatter={(label, payload) => {
+                  if (!payload?.[0]?.payload?.log_time) return `Hour : ${label}`;
+                  const d = new Date(payload[0].payload.log_time);
+                  const dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                  const timeStr = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                  return `${dateStr} ${timeStr} (Hour ${label})`;
+                }}
               />
 
               <Line
