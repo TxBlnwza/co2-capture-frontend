@@ -1,4 +1,3 @@
-// app/(shell)/Shell.tsx
 "use client";
 
 import { useState } from "react";
@@ -9,7 +8,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#3B5A9B] via-[#0c2a60] via-40% to-[#081b3c] text-white">
+    // เอา bg-gradient สีเข้มออก และแก้ text-white เป็น text-gray-900
+    <div className="min-h-screen text-gray-900">
       <Navbar onMenu={() => setOpen(true)} />
       <SideDrawer open={open} onClose={() => setOpen(false)} />
 
@@ -20,5 +20,4 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
 

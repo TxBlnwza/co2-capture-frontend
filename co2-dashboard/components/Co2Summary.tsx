@@ -16,7 +16,12 @@ import {
 
 const MAX_BAR_PPM = 1000;
 
-export default function Co2Summary() {
+// 1. เพิ่ม Interface เพื่อรับ Props จากหน้าหลัก
+interface Co2SummaryProps {
+  className?: string;
+}
+
+export default function Co2Summary({ className }: Co2SummaryProps) {
   const [row, setRow] = useState<Co2Row | null>(null);
 
   useEffect(() => {
@@ -70,29 +75,28 @@ export default function Co2Summary() {
         label: "CO₂ Sensor 1",
         val: avgP1,
         w: Math.min(100, (avgP1 / MAX_BAR_PPM) * 100),
-        color: "#5CE1E6",
+        color: "#2DD4BF",
       },
       {
         label: "CO₂ Sensor 2",
         val: avgP2,
         w: Math.min(100, (avgP2 / MAX_BAR_PPM) * 100),
-        color: "#C77DFF",
+        color: "#A855F7",
       },
       {
         label: "CO₂ Sensor 3",
         val: avgP3,
         w: Math.min(100, (avgP3 / MAX_BAR_PPM) * 100),
-        color: "#edf4b0ff",
+        color: "#EAB308",
       },
     ],
     [avgP1, avgP2, avgP3]
   );
 
-  // ⭐ คำนวณ % เทียบเมื่อวาน + ใส่ช่องว่างหลังเครื่องหมาย
   const { trendColor, trendLabel } = useMemo(() => {
     if (!yesterdayKg || yesterdayKg <= 0) {
       return {
-        trendColor: "#D1D5DB",
+        trendColor: "#6B7280",
         trendLabel: "0.00% from yesterday",
       };
     }
@@ -101,37 +105,38 @@ export default function Co2Summary() {
     const isUp = diffPct > 0;
 
     const sign = isUp ? "+" : "-";
-    const color = isUp ? "#C6FFB2" : "#e32424ff"; // เขียว / แดง
+    const color = isUp ? "#16A34A" : "#DC2626";
     const absPct = Math.abs(diffPct).toFixed(2);
 
     return {
       trendColor: color,
-      trendLabel: `${sign} ${absPct}% from yesterday`, // 👈 เพิ่มช่องว่างหลังเครื่องหมาย
+      trendLabel: `${sign} ${absPct}% from yesterday`,
     };
   }, [totalKg, yesterdayKg]);
 
   return (
-    <div className="w-full md:w-4/5 mx-auto">
-      <div className="rounded-[10px] bg-gradient-to-r from-[#5B8DD7] to-[#103E81] border border-white border-[0.5px] p-6 text-white">
+    // 2. ปรับ div นอกสุดให้รับ className และใส่ h-full เพื่อให้ยืดตาม Container พ่อได้
+    <div className={`w-full ${className}`}>
+      <div className="rounded-3xl bg-gradient-to-r from-[#CDF0FF] to-[#78A9F2] border-[0.5px] border-[#9FD2FE] p-6 text-[#173396] shadow-md w-full h-full flex flex-col justify-center">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center relative">
-          <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-white/30" />
+          <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-[#173396]/20" />
 
           {/* 🔵 ซ้าย: Total KG + เทียบเมื่อวาน */}
           <div className="flex flex-col justify-between h-full">
-            <div className="text-sm opacity-90">CO₂ Reduced</div>
+            <div className="text-lg font-bold mb-2">CO₂ Reduced</div>
 
             <div className="text-center">
               <div
-                className="text-3xl font-bold leading-tight tracking-tight"
-                style={{ color: "#abf9abff" }}
+                className="text-4xl font-bold leading-tight tracking-tight mb-2"
+                style={{ color: "#15B10A" }}
               >
                 {Number(totalKg).toLocaleString(undefined, {
                   minimumFractionDigits: 8,
                   maximumFractionDigits: 8,
                 })}
                 <span
-                  className="text-base font-semibold opacity-90 ml-1"
-                  style={{ color: "#abf9abff" }}
+                  className="text-base font-semibold ml-1"
+                  style={{ color: "#15B10A" }}
                 >
                   kg
                 </span>
@@ -139,7 +144,7 @@ export default function Co2Summary() {
             </div>
 
             <div
-              className="text-sm opacity-90 flex items-center gap-2"
+              className="text-sm font-medium flex items-center gap-2 mt-2"
               style={{ color: trendColor }}
             >
               <span
@@ -151,15 +156,16 @@ export default function Co2Summary() {
           </div>
 
           {/* 🔵 ขวา: 3 Bars เฉลี่ย/วัน */}
-          <div className="flex flex-col">
-            <div className="space-y-3">
+          <div className="flex flex-col justify-between h-full">
+            <div className="space-y-4">
               {bars.map((b) => (
                 <div key={b.label}>
-                  <div className="flex justify-between text-xs opacity-90 mb-1">
+                  {/* แก้ไขสีข้อความตรงนี้เป็น #FCFFCF */}
+                  <div className="flex justify-between text-sm font-medium mb-1" style={{ color: "#FCFFCF" }}>
                     <span>{b.label}</span>
                     <span>{b.val.toFixed(2)} ppm</span>
                   </div>
-                  <div className="h-2.5 rounded-full bg-white/20 overflow-hidden">
+                  <div className="h-2.5 rounded-full bg-[#173396]/10 overflow-hidden">
                     <div
                       className="h-full transition-[width] duration-500"
                       style={{ width: `${b.w}%`, backgroundColor: b.color }}
@@ -169,7 +175,7 @@ export default function Co2Summary() {
               ))}
             </div>
 
-            <div className="mt-3 text-xs opacity-80 self-end">
+            <div className="mt-4 text-xs font-medium opacity-70 self-end">
               Average/Day
             </div>
           </div>
@@ -178,8 +184,6 @@ export default function Co2Summary() {
     </div>
   );
 }
-
-
 
 
 

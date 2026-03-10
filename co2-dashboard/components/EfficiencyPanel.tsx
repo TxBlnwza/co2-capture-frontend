@@ -1,4 +1,3 @@
-// components/EfficiencyPanel.tsx
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -68,8 +67,8 @@ export default function EfficiencyPanel({ className = "" }: { className?: string
         {
           data: series,
           borderWidth: 2,
-          borderColor: "#7EF5B3",
-          backgroundColor: "rgba(126,245,179,0.18)",
+          borderColor: "#006ED5",
+          backgroundColor: "rgba(0,110,213,0.1)",
           spanGaps: true,
           fill: true,
           pointRadius: 0,
@@ -86,13 +85,13 @@ export default function EfficiencyPanel({ className = "" }: { className?: string
       className={`
         w-full mx-auto lg:mx-0
         max-w-[420px] lg:max-w-[320px]
-        rounded-[10px] border border-white/15
-        bg-gradient-to-b from-[#2e61b0]/40 to-[#0b2a60]/40
-        p-4 text-white shadow-md
+        rounded-[10px] border border-[#9FD2FE] border-[0.5px]
+        bg-gradient-to-b from-[#D4E8FE] to-[#96C7FE]
+        p-4 text-[#123165] shadow-md
         ${className}
       `}
     >
-      {/* ==== Date pickers (อินพุตจริง ไม่มีปุ่มแคปซูล) ==== */}
+      {/* ==== Date pickers ==== */}
       <div className="mb-3 flex items-center gap-2">
         <input
           type="date"
@@ -118,7 +117,7 @@ export default function EfficiencyPanel({ className = "" }: { className?: string
       </div>
 
       {/* Chart */}
-      <div className="h-48 rounded-xl bg-white/10 p-2">
+      <div className="h-48 rounded-xl bg-white/30 p-2">
         <Line
           ref={chartRef}
           data={chart}
@@ -146,55 +145,33 @@ export default function EfficiencyPanel({ className = "" }: { className?: string
             },
             elements: { point: { radius: 0 } },
             scales: {
-              x: { grid: { color: "rgba(255,255,255,0.08)" }, ticks: { color: "#fff" } },
+              x: { grid: { color: "rgba(0,0,0,0.05)" }, ticks: { color: "#123165" } },
               y: {
                 min: 0,
                 max: 100,
-                ticks: { color: "#fff", stepSize: 20, callback: (v) => `${v}%` },
-                grid: { color: "rgba(255,255,255,0.08)" },
+                ticks: { color: "#123165", stepSize: 20, callback: (v) => `${v}%` },
+                grid: { color: "rgba(0,0,0,0.05)" },
               },
             },
             maintainAspectRatio: false,
-            onClick: (evt) => {
-              const chart = chartRef.current;
-              if (!chart) return;
-              const points = chart.getElementsAtEventForMode(
-                evt,
-                "nearest",
-                { intersect: false },
-                true
-              );
-              if (!points.length) {
-                chart.setActiveElements([]);
-                chart.tooltip.setActiveElements([], { x: 0, y: 0 });
-                chart.update();
-                return;
-              }
-              const { index, datasetIndex } = points[0];
-              const meta = chart.getDatasetMeta(datasetIndex);
-              const pt = meta.data[index];
-              chart.setActiveElements([{ datasetIndex, index }]);
-              chart.tooltip.setActiveElements([{ datasetIndex, index }], { x: pt.x, y: pt.y });
-              chart.update();
-            },
           }}
         />
       </div>
 
       {/* Average Efficiency (รวมช่วง) */}
       <div className="mt-4 text-center">
-        <div className="text-sm opacity-85 tracking-wide">Average Efficiency :</div>
-        <div className="text-3xl font-extrabold text-[#7EF5B3] mt-1">
+        <div className="text-sm font-bold tracking-wide text-[#006ED5]">Average Efficiency :</div>
+        {/* เอาเส้นขอบออกเรียบร้อยแล้ว */}
+        <div className="text-3xl font-extrabold text-[#063377] mt-1">
           {overall}%
         </div>
       </div>
 
       {/* Stats */}
-      <div className="mt-3 text-xs">
-        {/* ✅ Total ของช่วงวันที่เลือก (kg) อยู่ด้านบน Avg / Day */}
+      <div className="mt-3 text-xs font-medium">
         <div className="flex items-center justify-between py-1">
-          <span className="opacity-85">Total :</span>
-          <span className="font-medium">
+          <span className="text-[#6A7EB7]">Total :</span>
+          <span className="font-bold">
             {Number(totalKgRange ?? 0).toLocaleString(undefined, {
               maximumFractionDigits: 6,
             })}{" "}
@@ -203,49 +180,47 @@ export default function EfficiencyPanel({ className = "" }: { className?: string
         </div>
 
         <div className="flex items-center justify-between py-1">
-          <span className="opacity-85">Avg / Day :</span>
-          <span className="font-medium">
+          <span className="text-[#6A7EB7]">Avg / Day :</span>
+          <span className="font-bold">
             {avgReducedPPM ? `${avgReducedPPM.toFixed(2)} ppm` : "—"}
           </span>
         </div>
         <div className="flex items-center justify-between py-1">
-          <span className="opacity-85">Max day :</span>
-          <span className="font-medium">
+          <span className="text-[#6A7EB7]">Max day :</span>
+          <span className="font-bold">
             {maxDay} - {max}%
           </span>
         </div>
         <div className="flex items-center justify-between py-1">
-          <span className="opacity-85">Min day :</span>
-          <span className="font-medium">
+          <span className="text-[#6A7EB7]">Min day :</span>
+          <span className="font-bold">
             {minDay} - {min}%
           </span>
         </div>
       </div>
 
-      {/* สไตล์อินพุต date ให้มองเห็นชัด (พื้นน้ำเงินเข้ม, ขาว, ไอคอนขาว) */}
       <style jsx>{`
         .date-input {
-          background: #123165;
-          color: #ffffff;
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          background: rgba(255, 255, 255, 0.5);
+          color: #123165;
+          border: 1px solid #9FD2FE;
           border-radius: 10px;
           padding: 6px 10px;
           outline: none;
         }
         .date-input::-webkit-calendar-picker-indicator {
-          filter: invert(1);
+          filter: none;
           opacity: 0.9;
           cursor: pointer;
         }
         .date-input:focus {
-          border-color: rgba(255, 255, 255, 0.35);
-          box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12);
+          border-color: #006ED5;
+          background: white;
         }
       `}</style>
     </div>
   );
 }
-
 
 
 

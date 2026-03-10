@@ -32,8 +32,10 @@ export default function RealtimeCard({
   }, [column]);
 
   return (
-    <div className="w-full rounded-2xl bg-gradient-to-b from-[#5EA0EB] to-[#002F93] p-4 text-white shadow-md border-none flex flex-col items-center justify-center">
-      <div className="text-sm font-medium text-white">{title}</div>
+    /* ปรับ Gradient ใหม่, เพิ่มเส้นขอบบางๆ และเปลี่ยนสี Text เป็น #203F9A */
+    <div className="w-full rounded-2xl bg-gradient-to-b from-[#F3FBFF] to-[#A7E2FF] border-[0.5px] border-[#C2E3FF] p-4 text-[#203F9A] shadow-md flex flex-col items-center justify-center">
+      {/* ปรับ font เป็น font-normal เพื่อให้ตัวหนังสือบางลงตามที่ต้องการ */}
+      <div className="text-sm font-normal">{title}</div>
       <div className="text-2xl font-semibold mt-1">
         {value == null ? "—" : value}
         {unit ? ` ${unit}` : ""}

@@ -42,7 +42,6 @@ function parseHHMM(s: string): { h: number; m: number } {
 type Mode = "day" | "window";
 
 export default function TrendPanel() {
-  // Default 14 วันล่าสุด
   const today = new Date();
   const todayISO = toISODate(today);
   const start14 = new Date(today);
@@ -63,7 +62,6 @@ export default function TrendPanel() {
     return `${hh}:00`;
   });
 
-  // ปรับเวลาอัตโนมัติเมื่อเปลี่ยนวันใน time view
   useEffect(() => {
     if (mode !== "window") return;
     if (wDate !== todayISO) {
@@ -74,10 +72,8 @@ export default function TrendPanel() {
       const currentEnd = `${String(now.getHours()).padStart(2, "0")}:00`;
       if (wEnd === "23:59") setWEnd(currentEnd);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wDate, mode]);
 
-  // SWR key & fetcher
   const swrKey = useMemo(() => {
     if (mode === "day") return `reduced_series:day:${toISODate(dayFrom)}:${toISODate(dayTo)}`;
     return `reduced_series:win:${wDate}:${wStart}-${wEnd}`;
@@ -107,10 +103,8 @@ export default function TrendPanel() {
     return () => { void unsub(); };
   }, [swrKey]);
 
-  // Chart data
   const labels = data?.labels ?? [];
-  const rawSeries =
-    mode === "day" ? (data as any)?.reducedSeries ?? [] : (data as any)?.series ?? [];
+  const rawSeries = mode === "day" ? (data as any)?.reducedSeries ?? [] : (data as any)?.series ?? [];
   const series = rawSeries.map((v: any) => (v != null && v < 0 ? 0 : v));
   const avgReducedOverall = mode === "day" ? ((data as any)?.avgReducedOverall ?? 0) : null;
   const yMax = yMaxNice(series);
@@ -122,8 +116,8 @@ export default function TrendPanel() {
         {
           data: series,
           borderWidth: 2,
-          borderColor: mode === "day" ? "#34d1ff" : "#7EF5B3",
-          backgroundColor: mode === "day" ? "rgba(52,209,255,0.18)" : "rgba(126,245,179,0.18)",
+          borderColor: "#203F9A", // เปลี่ยนเส้นกราฟเป็นน้ำเงินเข้ม
+          backgroundColor: "rgba(32,63,154,0.1)", // พื้นที่ใต้กราฟสีจางลง
           fill: true,
           pointRadius: 0,
           pointHoverRadius: 4,
@@ -136,7 +130,6 @@ export default function TrendPanel() {
 
   const chartRef = useRef<any>(null);
 
-  // Quick range (Day view)
   const applyQuickRange = (days: 7 | 14 | 30) => {
     const end = new Date();
     const start = new Date(end);
@@ -147,18 +140,18 @@ export default function TrendPanel() {
   };
 
   return (
-    <div className="relative rounded-[10px] border border-white/15 bg-white/5 p-4 text-white shadow-md">
-      {/* ปุ่มโหมด: บนมือถือให้อยู่ใน flow, บนจอ >=sm ให้ไปชิดขวาบน */}
+    /* แก้ไข: เปลี่ยน bg เป็น white และ text เป็น #203F9A */
+    <div className="relative rounded-[10px] border border-[#C2E3FF] bg-white p-4 text-[#203F9A] shadow-md">
       <div className="mb-2 flex justify-end sm:mb-0 sm:absolute sm:right-4 sm:top-4 sm:z-10">
-        <div className="inline-flex overflow-hidden rounded-full border border-white/25">
+        <div className="inline-flex overflow-hidden rounded-full border border-[#203F9A]/20">
           <button
-            className={`px-3 py-1 text-xs ${mode === "day" ? "bg-white/25" : "bg-transparent hover:bg-white/10"}`}
+            className={`px-3 py-1 text-xs ${mode === "day" ? "bg-[#203F9A]/10" : "bg-transparent hover:bg-[#203F9A]/5"}`}
             onClick={() => setMode("day")}
           >
             Day view
           </button>
           <button
-            className={`px-3 py-1 text-xs ${mode === "window" ? "bg-white/25" : "bg-transparent hover:bg-white/10"}`}
+            className={`px-3 py-1 text-xs ${mode === "window" ? "bg-[#203F9A]/10" : "bg-transparent hover:bg-[#203F9A]/5"}`}
             onClick={() => setMode("window")}
           >
             Time view
@@ -166,16 +159,13 @@ export default function TrendPanel() {
         </div>
       </div>
 
-      {/* หัวข้อ + คอนโทรล (responsive) */}
       <div className="flex flex-col gap-3">
-        <div className="text-lg font-semibold">Daily CO₂ reduction trend :</div>
+        <div className="text-lg font-bold">Daily CO₂ reduction trend :</div>
 
         {mode === "day" ? (
-          // --- DAY VIEW ---
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            {/* controls ซ้าย: ทำให้ input กว้างเต็มบนมือถือ */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs opacity-85">Date</span>
+              <span className="text-xs font-medium">Date</span>
               <input
                 type="date"
                 value={toISODate(dayFrom)}
@@ -185,7 +175,7 @@ export default function TrendPanel() {
                   if (d > dayTo) setDayTo(d);
                   setDayFrom(d);
                 }}
-                className="date-input w-full sm:w-auto bg-[#0b254f] text-white text-sm border border-white/20 rounded-md px-2 py-1"
+                className="date-input w-full sm:w-auto bg-[#F3FBFF] text-[#203F9A] text-sm border border-[#C2E3FF] rounded-md px-2 py-1 outline-none"
               />
               <span className="text-xs opacity-80">-</span>
               <input
@@ -193,64 +183,48 @@ export default function TrendPanel() {
                 value={toISODate(dayTo)}
                 min={toISODate(dayFrom)}
                 onChange={(e) => setDayTo(fromInputDate(e.target.value))}
-                className="date-input w-full sm:w-auto bg-[#0b254f] text-white text-sm border border-white/20 rounded-md px-2 py-1"
+                className="date-input w-full sm:w-auto bg-[#F3FBFF] text-[#203F9A] text-sm border border-[#C2E3FF] rounded-md px-2 py-1 outline-none"
               />
             </div>
-
-            {/* ขวา: Average */}
-            <div className="text-xs opacity-80 sm:text-right">
-              Average:{" "}
-              <span className="font-semibold">
-                {(avgReducedOverall ?? 0).toFixed(2)} ppm/day
-              </span>
+            <div className="text-xs font-semibold sm:text-right">
+              Average: {(avgReducedOverall ?? 0).toFixed(2)} ppm/day
             </div>
           </div>
         ) : (
-          // --- TIME VIEW ---
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs opacity-85">Date</span>
+              <span className="text-xs font-medium">Date</span>
               <input
                 type="date"
                 value={wDate}
                 onChange={(e) => setWDate(e.target.value)}
-                className="date-input w-full sm:w-auto bg-[#0b254f] text-white text-sm border border-white/20 rounded-md px-2 py-1"
+                className="date-input w-full sm:w-auto bg-[#F3FBFF] text-[#203F9A] text-sm border border-[#C2E3FF] rounded-md px-2 py-1 outline-none"
               />
-
-              <span className="text-xs opacity-85">From</span>
+              <span className="text-xs font-medium">From</span>
               <select
                 value={wStart}
                 onChange={(e) => setWStart(e.target.value)}
-                className="time-select w-full sm:w-auto bg-[#0b254f] text-white text-sm border border-white/20 rounded-md px-2 py-1"
-                aria-label="Start time"
+                className="time-select w-full sm:w-auto bg-[#F3FBFF] text-[#203F9A] text-sm border border-[#C2E3FF] rounded-md px-2 py-1 outline-none"
               >
-                {HOURS_FROM.map((t) => (
-                  <option key={`sh-${t}`} value={t}>{t}</option>
-                ))}
+                {HOURS_FROM.map((t) => <option key={`sh-${t}`} value={t}>{t}</option>)}
               </select>
-
-              <span className="text-xs opacity-85">To</span>
+              <span className="text-xs font-medium">To</span>
               <select
                 value={wEnd}
                 onChange={(e) => setWEnd(e.target.value)}
-                className="time-select w-full sm:w-auto bg-[#0b254f] text-white text-sm border border-white/20 rounded-md px-2 py-1"
-                aria-label="End time"
+                className="time-select w-full sm:w-auto bg-[#F3FBFF] text-[#203F9A] text-sm border border-[#C2E3FF] rounded-md px-2 py-1 outline-none"
               >
-                {HOURS_TO.map((t) => (
-                  <option key={`eh-${t}`} value={t}>{t}</option>
-                ))}
+                {HOURS_TO.map((t) => <option key={`eh-${t}`} value={t}>{t}</option>)}
               </select>
             </div>
-
-            <div className="text-xs opacity-80 sm:text-right">
-              Time range: <span className="font-semibold">{wStart} - {wEnd}</span>
+            <div className="text-xs font-semibold sm:text-right">
+              Time range: {wStart} - {wEnd}
             </div>
           </div>
         )}
       </div>
 
-      {/* กราฟ — สูงขึ้นบนจอใหญ่, ยืดเต็มกว้างบนมือถือ */}
-      <div className="mt-3 h-56 sm:h-64 lg:h-72 rounded-xl bg-white/10 p-3">
+      <div className="mt-3 h-56 sm:h-64 lg:h-72 rounded-xl bg-[#F3FBFF] p-3 border border-[#C2E3FF]">
         <Line
           ref={chartRef}
           data={chart}
@@ -261,30 +235,17 @@ export default function TrendPanel() {
               legend: { display: false },
               tooltip: {
                 enabled: true,
-                displayColors: false,
-                backgroundColor: "rgba(0,0,0,0.85)",
-                titleColor: "#fff",
-                bodyColor: "#fff",
-                padding: 10,
-                callbacks: {
-                  title: (items) => labels[items[0].dataIndex] ?? "",
-                  label: (ctx) => {
-                    const y = ctx.parsed?.y;
-                    return `${mode === "day" ? "Avg. Reduced" : "Reduced"}: ${
-                      y == null ? "N/A" : y.toFixed(2) + " ppm"
-                    }`;
-                  },
-                },
+                backgroundColor: "rgba(32,63,154,0.9)",
               },
             },
             elements: { point: { radius: 0 } },
             scales: {
-              x: { grid: { color: "rgba(255,255,255,0.08)" }, ticks: { color: "#fff" } },
+              x: { grid: { color: "rgba(32,63,154,0.05)" }, ticks: { color: "#203F9A" } },
               y: {
                 min: 0,
                 max: yMax,
-                ticks: { color: "#fff" },
-                grid: { color: "rgba(255,255,255,0.08)" },
+                ticks: { color: "#203F9A" },
+                grid: { color: "rgba(32,63,154,0.05)" },
               },
             },
             maintainAspectRatio: false,
@@ -292,55 +253,30 @@ export default function TrendPanel() {
         />
       </div>
 
-      {/* ส่วนล่าง */}
-      {mode === "day" ? (
-        <div className="mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          {/* ซ้าย: 7D/14D/30D */}
-          <div className="inline-flex w-full sm:w-auto overflow-hidden rounded-full border border-white/20">
+      <div className="mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        {mode === "day" && (
+          <div className="inline-flex w-full sm:w-auto overflow-hidden rounded-full border border-[#203F9A]/20">
             {[7, 14, 30].map((d) => (
               <button
                 key={d}
                 onClick={() => applyQuickRange(d as 7 | 14 | 30)}
-                className={`flex-1 sm:flex-none px-3 py-1 text-xs ${range === d ? "bg-white/25" : "bg-white/10 hover:bg-white/15"}`}
+                className={`flex-1 sm:flex-none px-3 py-1 text-xs ${range === d ? "bg-[#203F9A]/20 font-bold" : "bg-white hover:bg-[#F3FBFF]"}`}
               >
                 {d}D
               </button>
             ))}
           </div>
-          {/* ขวา: Date range */}
-          <div className="text-[11px] opacity-80 text-right">
-            Date range: {fmtRangeText(dayFrom, dayTo)}
-          </div>
+        )}
+        <div className="text-[11px] font-medium opacity-80 text-right">
+          {mode === "day" ? `Date range: ${fmtRangeText(dayFrom, dayTo)}` : `Time range: ${wStart} - ${wEnd}`}
         </div>
-      ) : (
-        <div className="mt-2 flex items-center justify-end">
-          <div className="text-[11px] opacity-80">
-            Time range: {wStart} - {wEnd}
-          </div>
-        </div>
-      )}
+      </div>
 
-      {/* ทำให้ date picker icon เป็นสีขาว + รองรับธีมเข้ม/มือถือ */}
       <style jsx global>{`
-        /* ให้ native date input ดูเข้ากับธีมมืด และทำไอคอนปฏิทินเป็นสีขาว */
-        .date-input {
-          color-scheme: white;
-        }
+        .date-input { color-scheme: light; }
         .date-input::-webkit-calendar-picker-indicator {
-          filter: invert(1) brightness(2);
+          filter: none;
           cursor: pointer;
-        }
-        /* บางเบราว์เซอร์ */
-        input[type="date"]::-ms-clear,
-        input[type="date"]::-ms-reveal {
-          display: none;
-        }
-        /* ป้องกัน wrap เพี้ยนบนมือถือ */
-        @media (max-width: 640px) {
-          .time-select,
-          .date-input {
-            min-width: 140px;
-          }
         }
       `}</style>
     </div>

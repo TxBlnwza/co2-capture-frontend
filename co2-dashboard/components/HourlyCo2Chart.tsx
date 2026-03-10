@@ -258,7 +258,7 @@ export default function HourlyCo2Chart() {
       {/* Header + filters */}
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-3">
         <div>
-          <div className="text-slate-900 font-semibold">Hourly CO₂ Sensor Position Trends</div>
+          <div className="text-[#203F9A] font-semibold text-lg ml-4">Hourly CO₂ Sensor Position Trends</div>
           {/* <div className="text-xs text-slate-500">{titleRange}</div> */}
         </div>
 
