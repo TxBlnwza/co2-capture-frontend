@@ -138,7 +138,7 @@ export default function Co2Summary({ className }: Co2SummaryProps) {
                   className="text-base font-semibold ml-1"
                   style={{ color: "#15B10A" }}
                 >
-                  kgSS
+                  kg
                 </span>
               </div>
             </div>

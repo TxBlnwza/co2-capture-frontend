@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import HourlyPhChart from "@/components/HourlyPhChart";
+import HourlyEnergyChart from "@/components/HourlyEnergyChart"; // 🌟 แก้ไขการ Import ตรงนี้ให้ถูกต้อง
 import PhHistoryModal from "@/components/history/PhHistoryModal";
 import { useEnvironmentData } from "@/hooks/useEnvironmentData";
 
@@ -195,6 +196,10 @@ export default function EnergyPage() {
       {/* 3. Chart Section */}
       <div className="mt-8 w-full overflow-hidden">
         <HourlyPhChart />
+      </div>
+
+      <div className="mt-8 w-full overflow-hidden">
+        <HourlyEnergyChart />
       </div>
 
       {/* 4. Modals */}
