@@ -8,13 +8,14 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
 
   return (
-    // เอา bg-gradient สีเข้มออก และแก้ text-white เป็น text-gray-900
     <div className="min-h-screen text-gray-900">
       <Navbar onMenu={() => setOpen(true)} />
       <SideDrawer open={open} onClose={() => setOpen(false)} />
 
-      {/* content container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* 1. เปลี่ยน max-w-7xl เป็น max-w-[1440px] (หรือ max-w-full ถ้าอยากให้เต็มจอจริงๆ)
+          2. ปรับ px (Padding) ให้เล็กลงเพื่อให้เนื้อหาชิดขอบซ้าย-ขวามากขึ้น
+      */}
+      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 transition-all">
         {children}
       </main>
     </div>

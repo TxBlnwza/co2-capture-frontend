@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react"; // 🌟 เพิ่ม useRef
 import { supabase } from "@/lib/supabaseClient";
+import { toPng } from "html-to-image"; // 🌟 Import html-to-image
 import {
   ResponsiveContainer,
   LineChart,
@@ -11,6 +12,7 @@ import {
   CartesianGrid,
   Tooltip,
   Label,
+  Legend, // 🌟 ใช้ Legend ของ recharts
 } from "recharts";
 
 type HourlyRow = {
@@ -52,7 +54,6 @@ function formatDateTH(dateStr: string) {
   });
 }
 
-// ✅ เพิ่ม: format เป็น dd/mm/yyyy สำหรับ "Date range: ..."
 function formatDateEN(dateStr: string) {
   const d = startOfDayLocal(dateStr);
   const dd = String(d.getDate()).padStart(2, "0");
@@ -61,25 +62,25 @@ function formatDateEN(dateStr: string) {
   return `${dd}/${mm}/${yyyy}`;
 }
 
-/** Legend overlay: "- Sensor X" โดย "-" เป็นสีเส้น แต่ "Sensor X" เป็นสีดำ */
+// 🌟 ปรับปรุง Legend ให้เป็นแนวนอน เพื่อใช้โชว์ด้านบนสุดของกราฟ
 function DashLegend() {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex justify-end gap-6 pb-2 pr-4">
       <div className="flex items-center gap-2">
-        <span aria-hidden className="text-base leading-none select-none" style={{ color: "#60A5FA" }}>
-          -
+        <span aria-hidden className="text-xl font-bold leading-none select-none" style={{ color: "#60A5FA", marginTop: "-3px" }}>
+          —
         </span>
         <span className="text-xs text-black">CO₂ Sensor 1</span>
       </div>
       <div className="flex items-center gap-2">
-        <span aria-hidden className="text-base leading-none select-none" style={{ color: "#34D399" }}>
-          -
+        <span aria-hidden className="text-xl font-bold leading-none select-none" style={{ color: "#34D399", marginTop: "-3px" }}>
+          —
         </span>
         <span className="text-xs text-black">CO₂ Sensor 2</span>
       </div>
       <div className="flex items-center gap-2">
-        <span aria-hidden className="text-base leading-none select-none" style={{ color: "#F472B6" }}>
-          -
+        <span aria-hidden className="text-xl font-bold leading-none select-none" style={{ color: "#F472B6", marginTop: "-3px" }}>
+          —
         </span>
         <span className="text-xs text-black">CO₂ Sensor 3</span>
       </div>
@@ -91,61 +92,27 @@ export default function HourlyCo2Chart() {
   const [rows, setRows] = useState<HourlyRow[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [rangeISO, setRangeISO] = useState<{ startISO: string; endISO: string } | null>(null);
+  // 🌟 บังคับค่าเริ่มต้นเป็น "วันนี้ ย้อนกลับไป 7 วัน" แบบตรงไปตรงมาเลย
+  const initialEnd = new Date();
+  const initialStart = new Date(initialEnd);
+  initialStart.setDate(initialStart.getDate() - 7);
+
+  const initialStartDateStr = toDateInputValue(initialStart);
+  const initialEndDateStr = toDateInputValue(initialEnd);
 
   const [uiRange, setUiRange] = useState<UiRange>({
-    startDate: toDateInputValue(new Date()),
-    endDate: toDateInputValue(new Date()),
+    startDate: initialStartDateStr,
+    endDate: initialEndDateStr,
   });
 
-  // 1) Default: แสดงทั้งหมดตั้งแต่มีข้อมูล (min-max timestamp)
-  useEffect(() => {
-    const init = async () => {
-      setLoading(true);
+  const [rangeISO, setRangeISO] = useState<{ startISO: string; endISO: string } | null>({
+    startISO: startOfDayLocal(initialStartDateStr).toISOString(),
+    endISO: endOfDayLocal(initialEndDateStr).toISOString(),
+  });
 
-      const { data: minData, error: minErr } = await supabase
-        .from("co2_data")
-        .select("timestamp")
-        .order("timestamp", { ascending: true })
-        .limit(1);
+  const chartRef = useRef<HTMLDivElement>(null);
 
-      const { data: maxData, error: maxErr } = await supabase
-        .from("co2_data")
-        .select("timestamp")
-        .order("timestamp", { ascending: false })
-        .limit(1);
-
-      if (minErr || maxErr || !minData?.[0]?.timestamp || !maxData?.[0]?.timestamp) {
-        console.error("Cannot load min/max timestamp:", minErr ?? maxErr);
-
-        const today = toDateInputValue(new Date());
-        setUiRange({ startDate: today, endDate: today });
-
-        setRangeISO({
-          startISO: startOfDayLocal(today).toISOString(),
-          endISO: endOfDayLocal(today).toISOString(),
-        });
-        return;
-      }
-
-      const minTs = new Date(minData[0].timestamp);
-      const maxTs = new Date(maxData[0].timestamp);
-
-      const startDate = toDateInputValue(minTs);
-      const endDate = toDateInputValue(maxTs);
-
-      setUiRange({ startDate, endDate });
-
-      setRangeISO({
-        startISO: startOfDayLocal(startDate).toISOString(),
-        endISO: endOfDayLocal(endDate).toISOString(),
-      });
-    };
-
-    init();
-  }, []);
-
-  // 2) ทุกครั้งที่ rangeISO เปลี่ยน -> เรียก RPC
+  // ทุกครั้งที่ rangeISO เปลี่ยน -> เรียก RPC
   useEffect(() => {
     const run = async () => {
       if (!rangeISO) return;
@@ -180,31 +147,20 @@ export default function HourlyCo2Chart() {
     }));
   }, [rows]);
 
-  // ✅ (แก้ตามที่ขอ) ทำ tick แกน X ให้ละเอียดขึ้น + บังคับให้มีค่าขวาสุดเสมอ
   const xTicks = useMemo(() => {
     const max = chartData.length;
     if (max <= 1) return max === 1 ? [1] : [];
 
-    const targetTicks = 24; // ✅ ละเอียดขึ้น
+    const targetTicks = 24; 
     const step = Math.max(1, Math.ceil((max - 1) / targetTicks));
 
     const ticks: number[] = [];
     for (let v = 1; v <= max; v += step) ticks.push(v);
 
-    if (ticks[ticks.length - 1] !== max) ticks.push(max); // ✅ บังคับให้มีค่าตัวสุดท้าย
+    if (ticks[ticks.length - 1] !== max) ticks.push(max); 
 
     return ticks;
   }, [chartData]);
-
-  const applyDateRange = () => {
-    const start = startOfDayLocal(uiRange.startDate);
-    const end = endOfDayLocal(uiRange.endDate);
-
-    const startISO = (start <= end ? start : end).toISOString();
-    const endISO = (start <= end ? end : start).toISOString();
-
-    setRangeISO({ startISO, endISO });
-  };
 
   const quickLast24h = () => {
     const end = new Date();
@@ -214,7 +170,6 @@ export default function HourlyCo2Chart() {
     setRangeISO({ startISO: start.toISOString(), endISO: end.toISOString() });
   };
 
-  // ✅ เพิ่มใหม่: กลับไปดู “ข้อมูลทั้งหมด” (เรียก min-max เหมือน init)
   const showAllData = async () => {
     setLoading(true);
 
@@ -246,9 +201,25 @@ export default function HourlyCo2Chart() {
     });
   };
 
-  const titleRange = `${formatDateTH(uiRange.startDate)} - ${formatDateTH(uiRange.endDate)}`;
+  const downloadChartAsImage = async () => {
+    if (!chartRef.current) return;
+    try {
+      const dataUrl = await toPng(chartRef.current, {
+        backgroundColor: "#ffffff",
+        style: { fontFamily: "sans-serif" }
+      });
+      
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `co2_chart_${Date.now()}.png`; 
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Failed to export chart image", err);
+    }
+  };
 
-  // ✅ ใหม่: string สำหรับไปโชว์มุมขวาล่างของกราฟ
   const dateRangeText = `Date range: ${formatDateEN(uiRange.startDate)} - ${formatDateEN(
     uiRange.endDate
   )}`;
@@ -259,7 +230,6 @@ export default function HourlyCo2Chart() {
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-3">
         <div>
           <div className="text-[#203F9A] font-semibold text-lg ml-4">Hourly CO₂ Sensor Position Trends</div>
-          {/* <div className="text-xs text-slate-500">{titleRange}</div> */}
         </div>
 
         <div className="flex flex-wrap items-end gap-2">
@@ -315,29 +285,25 @@ export default function HourlyCo2Chart() {
           >
             Last 24 hr
           </button>
+
+          <button
+            onClick={downloadChartAsImage}
+            className="flex items-center gap-1 rounded-lg bg-blue-50 border border-blue-200 px-3 py-1 text-sm text-blue-700 hover:bg-blue-100 transition-colors"
+          >
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Chart
+          </button>
         </div>
       </div>
 
-      {/* Chart */}
       <div
-        className="h-[340px] select-none relative"
+        ref={chartRef}
+        className="h-[340px] select-none relative bg-white"
         onMouseDown={(e) => e.preventDefault()}
         style={{ outline: "none" }}
       >
-        <div
-          className="absolute z-10"
-          style={{
-            top: 18,
-            right: 18,
-            background: "rgba(255,255,255,0.75)",
-            borderRadius: 10,
-            padding: "8px 10px",
-            pointerEvents: "none",
-          }}
-        >
-          <DashLegend />
-        </div>
-
         <div
           className="absolute z-10 text-xs text-slate-600"
           style={{
@@ -361,9 +327,12 @@ export default function HourlyCo2Chart() {
             <LineChart data={chartData} margin={{ top: 12, right: 22, left: 18, bottom: 36 }}>
               <CartesianGrid horizontal={false} vertical={false} />
 
+              {/* 🌟 ใช้ Legend ของ Recharts แทน DIV แบบ Absolute */}
+              <Legend verticalAlign="top" content={<DashLegend />} />
+
               <XAxis
                 dataKey="hourIndex"
-                ticks={xTicks} // ✅ แก้ตามที่ขอ: เพิ่มความละเอียด + กันค่าขวาสุดหาย
+                ticks={xTicks} 
                 tick={{ fill: "rgba(15,23,42,0.85)", fontSize: 12 }}
                 stroke="rgba(15,23,42,0.35)"
                 allowDecimals={false}
@@ -381,7 +350,7 @@ export default function HourlyCo2Chart() {
 
               <YAxis
                 domain={[0, 1100]}
-                ticks={[0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]} // ✅ แก้ตามที่ขอ: ทุก 100
+                ticks={[0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]} 
                 tick={{ fill: "rgba(15,23,42,0.85)", fontSize: 12 }}
                 stroke="rgba(15,23,42,0.35)"
               >
