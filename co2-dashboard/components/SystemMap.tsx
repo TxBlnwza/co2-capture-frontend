@@ -1,5 +1,6 @@
 import React from 'react';
 import { Co2Row } from '@/lib/co2';
+import { useEnvironmentData } from "@/hooks/useEnvironmentData";
 
 // ===========================================================================
 // Interfaces
@@ -22,8 +23,30 @@ interface SensorNodeProps {
   accentColor?: string;
 }
 
+interface LightSensorNodeProps {
+  top: number;
+  left: number;
+  label: string;
+  frontTemp?: number | null;
+  rearTemp?: number | null;
+  width?: number;
+  height?: number;
+}
+
+interface PowerSensorNodeProps {
+  top: number;
+  left: number;
+  label: string;
+  voltage?: number | null;
+  current?: number | null;
+  power?: number | null;
+  energy?: number | null; // 🌟 เพิ่ม Interface สำหรับ Energy
+  width?: number;
+  height?: number;
+}
+
 // ===========================================================================
-// Sub-Component: SensorNode
+// Sub-Component: SensorNode (ไม่ถูกแก้ไขใดๆ)
 // ===========================================================================
 
 const SensorNode = ({
@@ -40,8 +63,8 @@ const SensorNode = ({
   
   const isPh = unit === "pH";
   const glowClass = isPh 
-    ? "group-hover:shadow-[0_0_25px_rgba(16,185,129,0.4)] group-hover:bg-emerald-500/10" 
-    : "group-hover:shadow-[0_0_25px_rgba(59,130,246,0.4)] group-hover:bg-blue-500/10";
+    ? "group-hover:shadow-[0_0_25px_rgba(16,185,129,0.4)] group-hover:bg-emerald-500/10 group-focus:shadow-[0_0_25px_rgba(16,185,129,0.4)] group-focus:bg-emerald-500/10" 
+    : "group-hover:shadow-[0_0_25px_rgba(59,130,246,0.4)] group-hover:bg-blue-500/10 group-focus:shadow-[0_0_25px_rgba(59,130,246,0.4)] group-focus:bg-blue-500/10";
 
   // ตรวจจับขอบจอ (Edge Detection)
   const isLeftEdge = left < 35;  
@@ -72,7 +95,9 @@ const SensorNode = ({
       }}
     >
       <div
-        className="group relative cursor-pointer"
+        role="button"
+        tabIndex={0}
+        className="group relative cursor-pointer focus:outline-none"
         style={{
           width: `${width}px`,   
           height: `${height}px`, 
@@ -82,12 +107,11 @@ const SensorNode = ({
         <div className={`w-full h-full rounded-2xl transition-all duration-500 ease-out ${glowClass}`} />
 
         {/* --- Tooltip (กล่องข้อความ) --- */}
-        {/* 🌟 ใช้ clamp() เพื่อให้กล่องยืดหดแบบเนียนๆ ตามขนาดจอ */}
         <div 
-          className="pointer-events-none absolute bottom-full rounded-2xl border border-blue-900/10 bg-white/95 text-slate-900 opacity-0 shadow-2xl backdrop-blur-md transition-all duration-300 group-hover:opacity-100 z-50 text-center font-sans"
+          className="pointer-events-none absolute bottom-full rounded-2xl border border-blue-900/10 bg-white/95 text-slate-900 opacity-0 shadow-2xl backdrop-blur-md transition-all duration-300 group-hover:opacity-100 group-focus:opacity-100 z-50 text-center font-sans"
           style={{
-            width: 'clamp(140px, 35vw, 224px)', // ความกว้างยืดหดตามจอ (เล็กสุด 140px, ใหญ่สุด 224px)
-            padding: 'clamp(8px, 2vw, 16px)',   // ช่องไฟยืดหดตามจอ
+            width: 'clamp(140px, 35vw, 224px)',
+            padding: 'clamp(8px, 2vw, 16px)',  
             marginBottom: 'clamp(8px, 2vw, 16px)',
             ...tooltipPosStyle
           }}
@@ -138,10 +162,257 @@ const SensorNode = ({
 };
 
 // ===========================================================================
+// Sub-Component: LightSensorNode (ไม่ถูกแก้ไขใดๆ)
+// ===========================================================================
+
+const LightSensorNode = ({
+  top,
+  left,
+  label,
+  frontTemp,
+  rearTemp,
+  width = 80, 
+  height = 80, 
+}: LightSensorNodeProps) => {
+  
+  const glowClass = "group-hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] group-hover:bg-amber-500/10 group-focus:shadow-[0_0_25px_rgba(245,158,11,0.4)] group-focus:bg-amber-500/10";
+
+  const isLeftEdge = left < 35;  
+  const isRightEdge = left > 65; 
+
+  const tooltipPosStyle: React.CSSProperties = isLeftEdge 
+    ? { left: '0' } 
+    : isRightEdge 
+    ? { right: '0' } 
+    : { left: '50%', transform: 'translateX(-50%)' };
+
+  const arrowStyle: React.CSSProperties = isLeftEdge
+    ? { left: `${width / 2}px`, transform: 'translateX(-50%)' }
+    : isRightEdge
+    ? { right: `${width / 2}px`, transform: 'translateX(50%)' }
+    : { left: '50%', transform: 'translateX(-50%)' };
+
+  return (
+    <div
+      className="absolute z-10"
+      style={{
+        top: `${top}%`,
+        left: `${left}%`,
+        transform: 'translate(-50%, -50%)',
+      }}
+    >
+      <div
+        role="button"
+        tabIndex={0}
+        className="group relative cursor-pointer focus:outline-none"
+        style={{
+          width: `${width}px`,   
+          height: `${height}px`, 
+        }}
+      >
+        <div className={`w-full h-full rounded-full transition-all duration-500 ease-out ${glowClass}`} />
+
+        <div 
+          className="pointer-events-none absolute bottom-full rounded-2xl border border-amber-900/10 bg-white/95 text-slate-900 opacity-0 shadow-2xl backdrop-blur-md transition-all duration-300 group-hover:opacity-100 group-focus:opacity-100 z-50 text-center font-sans"
+          style={{
+            width: 'clamp(150px, 35vw, 240px)', 
+            padding: 'clamp(8px, 2vw, 16px)',  
+            marginBottom: 'clamp(8px, 2vw, 16px)',
+            ...tooltipPosStyle
+          }}
+        >
+          <p 
+            className="font-extrabold tracking-tight text-blue-900"
+            style={{ fontSize: 'clamp(11px, 2.5vw, 14px)', marginBottom: 'clamp(4px, 1vw, 6px)' }}
+          >
+            {label}
+          </p>
+
+          <div className="flex flex-col" style={{ gap: 'clamp(4px, 1vw, 8px)' }}>
+            <div className="flex justify-between items-center border-b border-slate-100" style={{ paddingBottom: 'clamp(4px, 1vw, 8px)' }}>
+              <span className="font-semibold text-slate-400" style={{ fontSize: 'clamp(9px, 2vw, 11px)' }}>
+                Front Temp
+              </span>
+              <span className="font-bold text-amber-600" style={{ fontSize: 'clamp(12px, 3vw, 16px)' }}>
+                {frontTemp?.toFixed(2) ?? '--'}
+                <span className="font-medium text-slate-500 ml-1" style={{ fontSize: 'clamp(8px, 1.5vw, 10px)' }}>
+                  °C
+                </span>
+              </span>
+            </div>
+            
+            <div className="flex justify-between items-center" style={{ paddingTop: 'clamp(2px, 0.5vw, 4px)' }}>
+              <span className="font-semibold text-slate-400" style={{ fontSize: 'clamp(9px, 2vw, 11px)' }}>
+                Rear Temp
+              </span>
+              <span className="font-bold text-amber-600" style={{ fontSize: 'clamp(12px, 3vw, 16px)' }}>
+                {rearTemp?.toFixed(2) ?? '--'}
+                <span className="font-medium text-slate-500 ml-1" style={{ fontSize: 'clamp(8px, 1.5vw, 10px)' }}>
+                  °C
+                </span>
+              </span>
+            </div>
+          </div>
+
+          <div 
+            className="absolute top-full border-transparent border-t-white/95" 
+            style={{
+              borderWidth: 'clamp(6px, 1.5vw, 8px)',
+              ...arrowStyle
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ===========================================================================
+// Sub-Component: PowerSensorNode
+// ===========================================================================
+
+const PowerSensorNode = ({
+  top,
+  left,
+  label,
+  voltage,
+  current,
+  power,
+  energy, // 🌟 รับค่า Energy เข้ามา
+  width = 100, 
+  height = 80, 
+}: PowerSensorNodeProps) => {
+  
+  const glowClass = "group-hover:shadow-[0_0_25px_rgba(99,102,241,0.4)] group-hover:bg-indigo-500/10 group-focus:shadow-[0_0_25px_rgba(99,102,241,0.4)] group-focus:bg-indigo-500/10";
+
+  const isLeftEdge = left < 35;  
+  const isRightEdge = left > 65; 
+
+  const tooltipPosStyle: React.CSSProperties = isLeftEdge 
+    ? { left: '0' } 
+    : isRightEdge 
+    ? { right: '0' } 
+    : { left: '50%', transform: 'translateX(-50%)' };
+
+  const arrowStyle: React.CSSProperties = isLeftEdge
+    ? { left: `${width / 2}px`, transform: 'translateX(-50%)' }
+    : isRightEdge
+    ? { right: `${width / 2}px`, transform: 'translateX(50%)' }
+    : { left: '50%', transform: 'translateX(-50%)' };
+
+  return (
+    <div
+      className="absolute z-10"
+      style={{
+        top: `${top}%`,
+        left: `${left}%`,
+        transform: 'translate(-50%, -50%)',
+      }}
+    >
+      <div
+        role="button"
+        tabIndex={0}
+        className="group relative cursor-pointer focus:outline-none"
+        style={{
+          width: `${width}px`,   
+          height: `${height}px`, 
+        }}
+      >
+        <div className={`w-full h-full rounded-2xl transition-all duration-500 ease-out ${glowClass}`} />
+
+        <div 
+          className="pointer-events-none absolute bottom-full rounded-2xl border border-indigo-900/10 bg-white/95 text-slate-900 opacity-0 shadow-2xl backdrop-blur-md transition-all duration-300 group-hover:opacity-100 group-focus:opacity-100 z-50 text-center font-sans"
+          style={{
+            width: 'clamp(150px, 35vw, 240px)', 
+            padding: 'clamp(8px, 2vw, 16px)',  
+            marginBottom: 'clamp(8px, 2vw, 16px)',
+            ...tooltipPosStyle
+          }}
+        >
+          <p 
+            className="font-extrabold tracking-tight text-blue-900"
+            style={{ fontSize: 'clamp(11px, 2.5vw, 14px)', marginBottom: 'clamp(4px, 1vw, 6px)' }}
+          >
+            {label}
+          </p>
+
+          <div className="flex flex-col" style={{ gap: 'clamp(4px, 1vw, 8px)' }}>
+            
+            {/* Row 1: Voltage */}
+            <div className="flex justify-between items-center border-b border-slate-100" style={{ paddingBottom: 'clamp(4px, 1vw, 6px)' }}>
+              <span className="font-semibold text-slate-400" style={{ fontSize: 'clamp(9px, 2vw, 11px)' }}>
+                Voltage
+              </span>
+              <span className="font-bold text-emerald-600" style={{ fontSize: 'clamp(12px, 3vw, 16px)' }}>
+                {voltage?.toFixed(2) ?? '--'}
+                <span className="font-medium text-slate-500 ml-1" style={{ fontSize: 'clamp(8px, 1.5vw, 10px)' }}>
+                  V
+                </span>
+              </span>
+            </div>
+            
+            {/* Row 2: Current */}
+            <div className="flex justify-between items-center border-b border-slate-100" style={{ paddingBottom: 'clamp(4px, 1vw, 6px)', paddingTop: 'clamp(2px, 0.5vw, 4px)' }}>
+              <span className="font-semibold text-slate-400" style={{ fontSize: 'clamp(9px, 2vw, 11px)' }}>
+                Current
+              </span>
+              <span className="font-bold text-emerald-600" style={{ fontSize: 'clamp(12px, 3vw, 16px)' }}>
+                {current?.toFixed(2) ?? '--'}
+                <span className="font-medium text-slate-500 ml-1" style={{ fontSize: 'clamp(8px, 1.5vw, 10px)' }}>
+                  mA
+                </span>
+              </span>
+            </div>
+
+            {/* Row 3: Power (เพิ่ม border-b เข้าไปเพื่อให้มีเส้นคั่นกับ Energy) */}
+            <div className="flex justify-between items-center border-b border-slate-100" style={{ paddingBottom: 'clamp(4px, 1vw, 6px)', paddingTop: 'clamp(2px, 0.5vw, 4px)' }}>
+              <span className="font-semibold text-slate-400" style={{ fontSize: 'clamp(9px, 2vw, 11px)' }}>
+                Power
+              </span>
+              <span className="font-bold text-emerald-600" style={{ fontSize: 'clamp(12px, 3vw, 16px)' }}>
+                {power?.toFixed(4) ?? '--'}
+                <span className="font-medium text-slate-500 ml-1" style={{ fontSize: 'clamp(8px, 1.5vw, 10px)' }}>
+                  W
+                </span>
+              </span>
+            </div>
+
+            {/* 🌟 Row 4: Energy */}
+            <div className="flex justify-between items-center" style={{ paddingTop: 'clamp(2px, 0.5vw, 4px)' }}>
+              <span className="font-semibold text-slate-400" style={{ fontSize: 'clamp(9px, 2vw, 11px)' }}>
+                Energy
+              </span>
+              <span className="font-bold text-emerald-600" style={{ fontSize: 'clamp(12px, 3vw, 16px)' }}>
+                {energy?.toFixed(4) ?? '--'}
+                <span className="font-medium text-slate-500 ml-1" style={{ fontSize: 'clamp(8px, 1.5vw, 10px)' }}>
+                  Wh
+                </span>
+              </span>
+            </div>
+
+          </div>
+
+          <div 
+            className="absolute top-full border-transparent border-t-white/95" 
+            style={{
+              borderWidth: 'clamp(6px, 1.5vw, 8px)',
+              ...arrowStyle
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ===========================================================================
 // Main Component: SystemMap
 // ===========================================================================
 
 const SystemMap = ({ data, phData }: SystemMapProps) => {
+
+  const envData = useEnvironmentData();
+
   return (
     <div className="relative w-full h-auto flex justify-center items-start bg-transparent p-0 border-0 shadow-none pointer-events-none">
       <div className="relative inline-block w-full max-w-5xl bg-transparent pointer-events-auto">
@@ -149,6 +420,26 @@ const SystemMap = ({ data, phData }: SystemMapProps) => {
           src="/images/system-diagram.png"
           alt="System Diagram"
           className="block w-full h-auto bg-transparent"
+        />
+
+        {/* --- Power Supply Sensor --- */}
+        <PowerSensorNode
+          top={75} left={11.5} 
+          label="Power Consumption"
+          voltage={envData?.voltage}
+          current={envData?.current}
+          power={envData?.power}
+          energy={envData?.energy} // 🌟 ดึงค่า Energy จาก Hook มาใส่
+          width={115} height={95}
+        />
+
+        {/* --- Light / Solar Sensor --- */}
+        <LightSensorNode
+          top={16} left={36.5} 
+          label="Solar Cell"
+          frontTemp={envData?.solarFront}
+          rearTemp={envData?.solarRear}
+          width={95} height={95}
         />
 
         {/* --- CO2 Sensors --- */}

@@ -307,7 +307,7 @@ export default function HourlyEnergyChart() {
                   color: "#0f172a",
                 }}
                 labelStyle={{ color: "#0f172a" }}
-                formatter={(value: any) => [`${Number(value).toFixed(4)}`, "Energy (kWh)"]} // 🌟 ฟอร์แมตทศนิยม 4 ตำแหน่ง
+                formatter={(value: any) => [`${Number(value).toFixed(4)}`, "Energy (Wh)"]} // 🌟 ฟอร์แมตทศนิยม 4 ตำแหน่ง
                 labelFormatter={(label, payload) => {
                   if (!payload?.[0]?.payload?.log_time) return `Hour : ${label}`;
                   const d = new Date(payload[0].payload.log_time);

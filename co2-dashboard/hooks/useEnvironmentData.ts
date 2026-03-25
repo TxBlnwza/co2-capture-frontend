@@ -8,6 +8,9 @@ export function useEnvironmentData() {
     phWolffia: 0,
     solarFront: 0,
     solarRear: 0,
+    voltage: 0, // 🌟 เพิ่ม
+    current: 0, // 🌟 เพิ่ม
+    power: 0,   // 🌟 เพิ่ม
   });
 
   // กันค่า sensor error (-127)
@@ -37,6 +40,9 @@ export function useEnvironmentData() {
         phWolffia: latest.ph_wolffia ?? 0,
         solarFront: safeTemp(latest.temp_solar_front),
         solarRear: safeTemp(latest.temp_solar_rear),
+        voltage: latest.voltage ?? 0,       // 🌟 ดึงค่า voltage
+        current: latest.current_ma ?? 0,    // 🌟 ดึงค่า current_ma
+        power: latest.power_w ?? 0,         // 🌟 ดึงค่า power_w
       });
     }
   };
